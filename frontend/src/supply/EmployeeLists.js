@@ -116,6 +116,20 @@ class EmployeeLists extends Component {
         }
     };
 
+    handleSearch = (e) => {
+        const { value } = e.target;
+        const { employees } = this.state;
+        
+        // Filter employees based on employee name or job category
+        const filteredEmployees = employees.filter(employee =>
+            employee.employeeName.toLowerCase().includes(value.toLowerCase()) ||
+            employee.jobCategory.toLowerCase().includes(value.toLowerCase()) ||
+            employee.NIC.toLowerCase().includes(value.toLowerCase())
+        );
+    
+        this.setState({ searchQuery: value, filteredEmployees });
+    };
+
     validateForm = () => {
         const { newEmployee } = this.state;
         let isValid = true;
@@ -136,6 +150,10 @@ class EmployeeLists extends Component {
         }
         if (!newEmployee.contactNumber.match(/^\d{10}$/)) {
             validationMessages.contactNumber = 'Enter a valid contact number (10 digits).';
+            isValid = false;
+        }
+        if (!newEmployee.NIC.match(/^\d+$/)) {
+            validationMessages.NIC = 'NIC must contain only numeric values.';
             isValid = false;
         }
         if (!newEmployee.email.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)) {
@@ -268,12 +286,12 @@ const commonStyles = {
                 isDarkMode={isDarkMode}
                 toggleDarkMode={this.toggleDarkMode}
             />
-            <button onClick={this.handlePDFGeneration} style={{ ...commonStyles.buttonStyle2, background: '#009688' }}>
-                Generate PDF
-            </button>
             <Link to="/manage-employees">
                 <button style={{ ...commonStyles.buttonStyle2, background: '#009688', marginRight: '10% '}}>Employee manage</button>
             </Link>
+            <button onClick={this.handlePDFGeneration} style={{ ...commonStyles.buttonStyle2, background: '#009688' }}>
+                Generate PDF
+            </button>
             <div className="home">
                 <div style={commonStyles.cardStyle}>
                     <input
