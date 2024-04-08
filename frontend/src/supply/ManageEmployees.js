@@ -4,8 +4,10 @@ import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import swal from 'sweetalert';
 import Header from '../components/header';
 import Sidebar from '../components/sidebar';
+// import '../styles/style.css';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable'; 
+import 'jspdf-autotable';
+import FilterBox from '../components/FilterBox';
 
 class ManageEmployees extends Component {
     constructor(props) {
@@ -39,8 +41,6 @@ class ManageEmployees extends Component {
             },
             searchQuery: '', 
             filteredEmployees: [],
-            sortField: '', // Track the field to sort by
-            sortDirection: '', // Track the sorting direction
         };
     }
 
@@ -180,8 +180,7 @@ class ManageEmployees extends Component {
         // Filter employees based on employee name or job category
         const filteredEmployees = employees.filter(employee =>
             employee.employeeName.toLowerCase().includes(value.toLowerCase()) ||
-            employee.jobCategory.toLowerCase().includes(value.toLowerCase()) ||
-            employee.NIC.toLowerCase().includes(value.toLowerCase())
+            employee.jobCategory.toLowerCase().includes(value.toLowerCase())
         );
     
         this.setState({ searchQuery: value, filteredEmployees });
@@ -203,27 +202,11 @@ class ManageEmployees extends Component {
         };
 
         if (!newEmployee.employeeName) {
-            validationMessages.companyName = 'Employee Name cannot be empty.';
+            validationMessages.employeeName = 'Employee Name cannot be empty.';
             isValid = false;
         }
         if (!newEmployee.contactNumber.match(/^\d{10}$/)) {
             validationMessages.contactNumber = 'Enter a valid contact number (10 digits).';
-            isValid = false;
-        }
-        if (!newEmployee.NIC.match(/^\d+$/)) {
-            validationMessages.NIC = 'NIC must contain only numeric values.';
-            isValid = false;
-        }
-        if (!newEmployee.email.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)) {
-            validationMessages.email = 'Enter a valid email address.';
-            isValid = false;
-        }
-        if (!newEmployee.address) {
-            validationMessages.address = 'Address cannot be empty.';
-            isValid = false;
-        }
-        if (!newEmployee.jobCategory) {
-            validationMessages.jobCategory = 'Job Category cannot be empty.';
             isValid = false;
         }
         // You can add more validation rules for NIC, email, etc.
@@ -265,77 +248,38 @@ class ManageEmployees extends Component {
         }
     };
 
-    handleChange = (e) => {
-        const { name, value } = e.target;
+    handleChange = (field, value) => {
         this.setState(prevState => ({
             newEmployee: {
                 ...prevState.newEmployee,
-                [name]: value
-            },
-            validationMessages: {
-                ...prevState.validationMessages,
-                [name]: ''
+                [field]: value
             }
         }));
-    };
-
-    handleSubmit = async (e) => {
-        e.preventDefault();
-        if (this.validateForm()) {
-            try {
-                const { currentEmployeeId, newEmployee } = this.state;
-                if (currentEmployeeId) {
-                    await axios.put(`http://localhost:5555/employees/${currentEmployeeId}`, newEmployee);
-                    swal("Updated!", "Your employee has been updated successfully.", "success");
-                } else {
-                    await axios.post('http://localhost:5555/employees', newEmployee);
-                    swal("Added!", "Your new employee has been added successfully.", "success");
-                }
-                this.toggleAddModal();
-                this.fetchEmployees();
-            } catch (error) {
-                console.error("Couldn't add/update employee", error);
-                swal("Failed!", "There was a problem adding/updating your employee.", "error");
-            }
-        }
-    };
-
-    andleSort = (field) => {
-        const { sortDirection } = this.state;
-        this.setState(prevState => ({
-            sortField: field,
-            sortDirection: prevState.sortField === field && sortDirection === 'asc' ? 'desc' : 'asc'
-        }));
-    };
-
-    
-
-    handleFilterChange = (e) => {
-        const { value } = e.target;
-        this.setState({ filterOption: value });
-    };
-
-    handleFilter = () => {
-        // Logic to handle filtering based on dropdown selection and sorting direction
-        const { sortField, sortDirection } = this.state;
-        const { filteredEmployees } = this.state;
-        let sortedEmployees = [...filteredEmployees];
-
-        if (sortField && sortDirection) {
-            sortedEmployees = filteredEmployees.sort((a, b) => {
-                if (sortDirection === 'asc') {
-                    return a[sortField].localeCompare(b[sortField]);
-                } else {
-                    return b[sortField].localeCompare(a[sortField]);
-                }
-            });
-        }
-
-        this.setState({ filteredEmployees: sortedEmployees });
     }
 
+    handleFilterSubmit = (selectedField, sortOrder) => {
+        const { employees } = this.state;
+    
+        let filteredEmployees = [...employees]; // Create a copy of employees array
+    
+        // Implement sorting logic based on selectedField and sortOrder
+        if (selectedField && sortOrder) {
+            filteredEmployees.sort((a, b) => {
+                if (sortOrder === 'asc') {
+                    return a[selectedField] > b[selectedField] ? 1 : -1;
+                } else if (sortOrder === 'desc') {
+                    return a[selectedField] < b[selectedField] ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+    
+        // Update filteredEmployees state accordingly
+        this.setState({ filteredEmployees });
+    };    
+
     render() {
-        const { isDarkMode, isSidebarOpen, filteredEmployees, isAddModalOpen, isEditModalOpen, newEmployee, validationMessages, sortField, sortDirection } = this.state;
+        const { isDarkMode, isSidebarOpen, employees, newEmployee, isAddModalOpen, isEditModalOpen, validationMessages } = this.state;
         
         const modalStyle = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' };
         const modalContentStyle = { backgroundColor: isDarkMode ? '#333' : 'white', color: isDarkMode ? 'white' : 'black', padding: '20px', borderRadius: '8px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)', width: '400px' };
@@ -362,73 +306,6 @@ class ManageEmployees extends Component {
                 transition: 'all 0.3s',
                 marginLeft: 'var(--sidebar-width, 80px)',
                 width: 'calc(100% - var(--sidebar-width, 80px) - 20px)', 
-            },
-
-            filterBoxStyle: {
-                width: '300px',
-                backgroundColor: '#f9f9f9',
-                padding: '15px',
-                borderRadius: '8px',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                marginBottom: '20px',
-            },
-            selectStyle: {
-                padding: '10px',
-                marginRight: '10px',
-                borderRadius: '5px',
-                border: '1px solid #ccc',
-                fontSize: '14px',
-                backgroundColor: '#fff',
-                color: '#333',
-                width: '100px',
-            },
-            radioLabelStyle: {
-                marginRight: '20px',
-                fontSize: '14px',
-                color: '#333',
-            },
-            filterBtnStyle: {
-                padding: '10px 20px',
-                borderRadius: '5px',
-                border: 'none',
-                backgroundColor: '#009688',
-                color: '#fff',
-                fontSize: '14px',
-                cursor: 'pointer',
-            },
-
-            filterBoxStyle: {
-                width: '300px',
-                backgroundColor: '#f9f9f9',
-                padding: '15px',
-                borderRadius: '8px',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                marginBottom: '20px',
-            },
-
-            selectStyle: {
-                padding: '10px',
-                marginRight: '10px',
-                borderRadius: '5px',
-                border: '1px solid #ccc',
-                fontSize: '14px',
-                backgroundColor: '#fff',
-                color: '#333',
-                width: '100px',
-            },
-            radioLabelStyle: {
-                marginRight: '20px',
-                fontSize: '14px',
-                color: '#333',
-            },
-            filterBtnStyle: {
-                padding: '10px 20px',
-                borderRadius: '5px',
-                border: 'none',
-                backgroundColor: '#009688',
-                color: '#fff',
-                fontSize: '14px',
-                cursor: 'pointer',
             },
 
             tableStyle: {
@@ -472,14 +349,8 @@ class ManageEmployees extends Component {
                        color: '#fff', cursor: 'pointer', fontSize: '16px', textDecoration: 'none'
             },
             validationMessageStyle: {
-                color: '#ff3860',
-                fontSize: '0.8rem',
-                marginTop: '0.25rem',
-                fontStyle: 'italic', // Make the error message italic
-                fontWeight: 'bold', // Make the error message bold
-                // You can add more styling properties here to enhance the appearance
+                color: '#ff3860', fontSize: '0.8rem', marginTop: '0.25rem',
             },
-            
             buttonStyle2: {
                 padding: '8px 10px',
                 borderRadius: '5px',
@@ -498,11 +369,11 @@ class ManageEmployees extends Component {
                 border: 'none',
                 color: '#fff',
                 cursor: 'pointer',
-                marginTop: '20px',
+                marginTop: '10px',
+                marginBottom: '1%',
                 width: '10%',
                 marginLeft: '85%'
             }
-            
         };
     
         return (
@@ -515,40 +386,21 @@ class ManageEmployees extends Component {
                     isDarkMode={isDarkMode}
                     toggleDarkMode={this.toggleDarkMode}
                 />
-                        <button onClick={this.toggleAddModal}  style={{ ...commonStyles.buttonStyle3, background: '#009688'}}>
-                            <FaPlus style={{ marginRight: '10px' }} />
-                            Add Employees
-                        </button>
 
                         <button onClick={this.handlePDFGeneration} style={{ ...commonStyles.buttonStyle2, background: '#009688' }}>
                             Generate PDF
-                        </button> 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'right', padding: '20px', marginBottom: '20px' }}></div>
-            
+                        </button>
+    
+                         
+                        <button onClick={this.toggleAddModal}  style={{ ...commonStyles.buttonStyle3, background: '#009688'}}>
+                            <FaPlus style={{ marginRight: '8px' }} />
+                            Add Employees
+                        </button>
+
+                <FilterBox onSubmit={this.handleFilterSubmit} /> {/* Integrate FilterBox component here */}     
+                
                 <div className="home">
                     <div style={commonStyles.cardStyle}>
-                        {/* Filter box */}
-                        <div className="filter-box" style={commonStyles.filterBoxStyle}>
-                            <div className="filter-icons">
-                                <select style={commonStyles.selectStyle} onChange={(e) => this.setState({ sortField: e.target.value })}>
-                                    <option value="">Select Field</option>
-                                    <option value="NIC">NIC</option>
-                                    <option value="employeeName">Employee Name</option>
-                                    <option value="jobCategory">Job Category</option>
-                                </select>
-                                <div className="sort-radio">
-                                    <label style={commonStyles.radioLabelStyle}>
-                                        <input type="radio" name="sort" checked={sortDirection === 'asc'} onChange={() => this.setState({ sortDirection: 'asc' })} />
-                                        Sort Asc
-                                    </label>
-                                    <label style={commonStyles.radioLabelStyle}>
-                                        <input type="radio" name="sort" checked={sortDirection === 'desc'} onChange={() => this.setState({ sortDirection: 'desc' })} />
-                                        Sort Desc
-                                    </label>
-                                </div>
-                                <button className="filter-btn" onClick={this.handleFilter} style={commonStyles.filterBtnStyle}>Filter</button>
-                            </div>
-                        </div>
                     <input
                             type="text"
                             placeholder="Search by Employee Name or Job Category"
@@ -560,9 +412,9 @@ class ManageEmployees extends Component {
                         <table id="employees-table" style={commonStyles.tableStyle}>
                             <thead>
                                 <tr>
-                                    <th style={commonStyles.thStyle}>NIC</th>
                                     <th style={commonStyles.thStyle}>Employee Name</th>
                                     <th style={commonStyles.thStyle}>Contact Number</th>
+                                    <th style={commonStyles.thStyle}>NIC</th>
                                     <th style={commonStyles.thStyle}>Address</th>
                                     <th style={commonStyles.thStyle}>Email</th>
                                     <th style={commonStyles.thStyle}>Job Category</th>
@@ -575,9 +427,9 @@ class ManageEmployees extends Component {
                             <tbody>
                                 {this.state.filteredEmployees.map(employee => (
                                     <tr key={employee._id}>
-                                        <td style={commonStyles.tdStyle}>{employee.NIC}</td>
                                         <td style={commonStyles.tdStyle}>{employee.employeeName}</td>
                                         <td style={commonStyles.tdStyle}>{employee.contactNumber}</td>
+                                        <td style={commonStyles.tdStyle}>{employee.NIC}</td>
                                         <td style={commonStyles.tdStyle}>{employee.address}</td>
                                         <td style={commonStyles.tdStyle}>{employee.email}</td>
                                         <td style={commonStyles.tdStyle}>{employee.jobCategory}</td>
@@ -646,18 +498,13 @@ class ManageEmployees extends Component {
                                 onChange={e => this.handleChange('email', e.target.value)}
                             />
                             {validationMessages.email && <span style={commonStyles.validationMessageStyle}>{validationMessages.email}</span>}
-                            <select
+                            <input
+                                type="text"
+                                placeholder="Job Category"
                                 style={commonStyles.inputStyle}
                                 value={newEmployee.jobCategory}
                                 onChange={e => this.handleChange('jobCategory', e.target.value)}
-                            >
-                                <option value="">Select Job Category</option>
-                                <option value="Manager">Manager</option>
-                                <option value="Mechanic">Mechanic</option>
-                                <option value="Electrician">Electrician</option>
-                                <option value="Body Repair Technician">Body Repair Technician</option>
-                                <option value="Quality Testing Engineer">Quality Testing Engineer</option>
-                            </select>
+                            />
                             {validationMessages.jobCategory && <span style={commonStyles.validationMessageStyle}>{validationMessages.jobCategory}</span>}
                             <input
                                 type="number"
@@ -676,7 +523,6 @@ class ManageEmployees extends Component {
                             />
                             {validationMessages.otRate && <span style={commonStyles.validationMessageStyle}>{validationMessages.otRate}</span>}
                             <button onClick={this.addEmployee} style={{ ...commonStyles.buttonStyle, background: '#009688' }}>Add Employee</button>
-                            <button onClick={this.toggleAddModal} style={{ ...commonStyles.buttonStyle, background: '#c0392b' }}>Cancel</button>
                         </div>
                     </div>
                 )}
@@ -727,18 +573,13 @@ class ManageEmployees extends Component {
                                 onChange={e => this.handleChange('email', e.target.value)}
                             />
                             {validationMessages.email && <span style={commonStyles.validationMessageStyle}>{validationMessages.email}</span>}
-                            <select
+                            <input
+                                type="text"
+                                placeholder="Job Category"
                                 style={commonStyles.inputStyle}
                                 value={newEmployee.jobCategory}
                                 onChange={e => this.handleChange('jobCategory', e.target.value)}
-                            >
-                                <option value="">Select Job Category</option>
-                                <option value="Manager">Manager</option>
-                                <option value="Mechanic">Mechanic</option>
-                                <option value="Electrician">Electrician</option>
-                                <option value="Body Repair Technician">Body Repair Technician</option>
-                                <option value="Quality Testing Engineer">Quality Testing Engineer</option>
-                            </select>
+                            />
                             {validationMessages.jobCategory && <span style={commonStyles.validationMessageStyle}>{validationMessages.jobCategory}</span>}
                             <input
                                 type="number"
@@ -757,7 +598,6 @@ class ManageEmployees extends Component {
                             />
                             {validationMessages.otRate && <span style={commonStyles.validationMessageStyle}>{validationMessages.otRate}</span>}
                             <button onClick={this.updateEmployee} style={{ ...commonStyles.buttonStyle, background: '#009688' }}>Update Employee</button>
-                            <button onClick={() => this.toggleEditModal()} style={{ ...commonStyles.buttonStyle, background: '#c0392b' }}>Cancel</button>
                         </div>
                     </div>
                 )}
