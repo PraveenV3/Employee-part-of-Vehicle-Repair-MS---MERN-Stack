@@ -29,16 +29,18 @@ class FilterBox extends Component {
                 padding: '20px',
                 borderRadius: '8px',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                marginBottom: '20px',
-                width: 'fit-content',
+                marginBottom: '10px',
+                marginTop:'10%',
+                width: '30%',
                 margin: '0 auto',
+                //marginRight:'55%',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center', // Center items horizontally
             },
             selectField: {
-                padding: '10px',
-                marginRight: '10px',
+                padding: '10px 80px',
+                marginRight: '0px',
                 borderRadius: '4px',
                 border: '1px solid #ccc',
                 fontSize: '16px',
@@ -90,7 +92,7 @@ class FilterBox extends Component {
                                 checked={this.state.sortOrder === 'asc'}
                                 onChange={this.handleSortOrderChange}
                             />
-                            Asc
+                            Ascending
                         </label>
                         <label style={styles.radioButton}>
                             <input
@@ -99,7 +101,7 @@ class FilterBox extends Component {
                                 checked={this.state.sortOrder === 'desc'}
                                 onChange={this.handleSortOrderChange}
                             />
-                            Desc
+                            Descending
                         </label>
                     </div>
                     <button type="submit" style={styles.submitButton}>FILTER</button>

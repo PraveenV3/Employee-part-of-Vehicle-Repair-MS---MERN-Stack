@@ -209,6 +209,22 @@ class ManageEmployees extends Component {
             validationMessages.contactNumber = 'Enter a valid contact number (10 digits).';
             isValid = false;
         }
+        if (!newEmployee.NIC.match(/^\d+$/)) {
+            validationMessages.NIC = 'NIC must contain only numeric values.';
+            isValid = false;
+        }
+        if (!newEmployee.email.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)) {
+            validationMessages.email = 'Enter a valid email address.';
+            isValid = false;
+        }
+        if (!newEmployee.address) {
+            validationMessages.address = 'Address cannot be empty.';
+            isValid = false;
+        }
+        if (!newEmployee.jobCategory) {
+            validationMessages.jobCategory = 'Job Category cannot be empty.';
+            isValid = false;
+        }
         // You can add more validation rules for NIC, email, etc.
         // For brevity, I'm skipping them here.
         
@@ -372,6 +388,7 @@ class ManageEmployees extends Component {
                 marginTop: '10px',
                 marginBottom: '1%',
                 width: '10%',
+                height: '100%',
                 marginLeft: '85%'
             }
         };
@@ -390,14 +407,13 @@ class ManageEmployees extends Component {
                         <button onClick={this.handlePDFGeneration} style={{ ...commonStyles.buttonStyle2, background: '#009688' }}>
                             Generate PDF
                         </button>
-    
                          
                         <button onClick={this.toggleAddModal}  style={{ ...commonStyles.buttonStyle3, background: '#009688'}}>
                             <FaPlus style={{ marginRight: '8px' }} />
                             Add Employees
-                        </button>
+                        </button>     
 
-                <FilterBox onSubmit={this.handleFilterSubmit} /> {/* Integrate FilterBox component here */}     
+                        <FilterBox onSubmit={this.handleFilterSubmit} /> {/* Integrate FilterBox component here */}
                 
                 <div className="home">
                     <div style={commonStyles.cardStyle}>
@@ -412,13 +428,13 @@ class ManageEmployees extends Component {
                         <table id="employees-table" style={commonStyles.tableStyle}>
                             <thead>
                                 <tr>
+                                    <th style={commonStyles.thStyle}>NIC</th>
                                     <th style={commonStyles.thStyle}>Employee Name</th>
                                     <th style={commonStyles.thStyle}>Contact Number</th>
-                                    <th style={commonStyles.thStyle}>NIC</th>
                                     <th style={commonStyles.thStyle}>Address</th>
                                     <th style={commonStyles.thStyle}>Email</th>
                                     <th style={commonStyles.thStyle}>Job Category</th>
-                                    <th style={commonStyles.thStyle}>Toatl Salary</th>
+                                    <th style={commonStyles.thStyle}>Total Salary</th>
                                     <th style={commonStyles.thStyle}>Action</th>
                                  
                                 </tr>
@@ -427,9 +443,9 @@ class ManageEmployees extends Component {
                             <tbody>
                                 {this.state.filteredEmployees.map(employee => (
                                     <tr key={employee._id}>
+                                        <td style={commonStyles.tdStyle}>{employee.NIC}</td>
                                         <td style={commonStyles.tdStyle}>{employee.employeeName}</td>
                                         <td style={commonStyles.tdStyle}>{employee.contactNumber}</td>
-                                        <td style={commonStyles.tdStyle}>{employee.NIC}</td>
                                         <td style={commonStyles.tdStyle}>{employee.address}</td>
                                         <td style={commonStyles.tdStyle}>{employee.email}</td>
                                         <td style={commonStyles.tdStyle}>{employee.jobCategory}</td>
@@ -498,13 +514,18 @@ class ManageEmployees extends Component {
                                 onChange={e => this.handleChange('email', e.target.value)}
                             />
                             {validationMessages.email && <span style={commonStyles.validationMessageStyle}>{validationMessages.email}</span>}
-                            <input
-                                type="text"
-                                placeholder="Job Category"
+                            <select
                                 style={commonStyles.inputStyle}
                                 value={newEmployee.jobCategory}
                                 onChange={e => this.handleChange('jobCategory', e.target.value)}
-                            />
+                            >
+                                <option value="">Select Job Category</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Mechanic">Mechanic</option>
+                                <option value="Electrician">Electrician</option>
+                                <option value="Body Repair Technician">Body Repair Technician</option>
+                                <option value="Quality Testing Engineer">Quality Testing Engineer</option>
+                            </select>
                             {validationMessages.jobCategory && <span style={commonStyles.validationMessageStyle}>{validationMessages.jobCategory}</span>}
                             <input
                                 type="number"
@@ -523,6 +544,7 @@ class ManageEmployees extends Component {
                             />
                             {validationMessages.otRate && <span style={commonStyles.validationMessageStyle}>{validationMessages.otRate}</span>}
                             <button onClick={this.addEmployee} style={{ ...commonStyles.buttonStyle, background: '#009688' }}>Add Employee</button>
+                            <button onClick={this.toggleAddModal} style={{ ...commonStyles.buttonStyle, background: '#e74c3c' }}>Cancel</button>
                         </div>
                     </div>
                 )}
@@ -573,13 +595,18 @@ class ManageEmployees extends Component {
                                 onChange={e => this.handleChange('email', e.target.value)}
                             />
                             {validationMessages.email && <span style={commonStyles.validationMessageStyle}>{validationMessages.email}</span>}
-                            <input
-                                type="text"
-                                placeholder="Job Category"
+                            <select
                                 style={commonStyles.inputStyle}
                                 value={newEmployee.jobCategory}
                                 onChange={e => this.handleChange('jobCategory', e.target.value)}
-                            />
+                            >
+                                <option value="">Select Job Category</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Mechanic">Mechanic</option>
+                                <option value="Electrician">Electrician</option>
+                                <option value="Body Repair Technician">Body Repair Technician</option>
+                                <option value="Quality Testing Engineer">Quality Testing Engineer</option>
+                            </select>
                             {validationMessages.jobCategory && <span style={commonStyles.validationMessageStyle}>{validationMessages.jobCategory}</span>}
                             <input
                                 type="number"
@@ -598,6 +625,7 @@ class ManageEmployees extends Component {
                             />
                             {validationMessages.otRate && <span style={commonStyles.validationMessageStyle}>{validationMessages.otRate}</span>}
                             <button onClick={this.updateEmployee} style={{ ...commonStyles.buttonStyle, background: '#009688' }}>Update Employee</button>
+                            <button onClick={() => this.toggleEditModal()} style={{ ...commonStyles.buttonStyle, background: '#e74c3c' }}>Cancel</button>
                         </div>
                     </div>
                 )}
