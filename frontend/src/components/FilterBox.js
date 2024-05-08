@@ -25,38 +25,41 @@ class FilterBox extends Component {
     render() {
         const styles = {
             filterBox: {
-                background: '#f7f7f7',
+                background: '#f4f4f4',
                 padding: '20px',
-                borderRadius: '8px',
+                borderRadius: '10px',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                marginBottom: '10px',
-                marginTop:'10%',
+                marginBottom: '20px',
+                marginTop: '-100px',
                 width: '30%',
-                margin: '0 auto',
-                //marginRight:'55%',
+                height:'25%',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center', // Center items horizontally
             },
             selectField: {
-                padding: '10px 80px',
-                marginRight: '0px',
+                padding: '10px',
+                width:'100%',
                 borderRadius: '4px',
                 border: '1px solid #ccc',
                 fontSize: '16px',
+                marginBottom: '10px',
             },
             radioContainer: {
-                marginBottom: '10px',
+                marginBottom: '20px',
                 display: 'flex',
                 justifyContent: 'center', // Center items horizontally
             },
             radioButton: {
-                marginRight: '10px',
+                marginRight: '20px',
                 cursor: 'pointer',
+                fontSize: '16px',
             },
             submitButton: {
-                padding: '10px 20px',
-                borderRadius: '4px',
+                padding: ' 20px',
+                borderRadius: '5px',
+                width: '50%',
+                height:'30%',
                 border: 'none',
                 background: '#009688',
                 color: '#fff',
@@ -67,6 +70,7 @@ class FilterBox extends Component {
 
         return (
             <div style={styles.filterBox}>
+                <h2 style={{ textAlign: 'center', fontSize: '24px', marginBottom: '20px' }}>Filter Employees</h2>
                 <form onSubmit={this.handleSubmit}>
                     <select
                         value={this.state.selectedField}
@@ -75,15 +79,9 @@ class FilterBox extends Component {
                     >
                         <option value="">Select Field</option>
                         <option value="employeeName">Employee Name</option>
-                        {/* <option value="contactNumber">Contact Number</option> */}
                         <option value="NIC">NIC</option>
-                        {/* <option value="address">Address</option> */}
-                        {/* <option value="email">Email</option> */}
                         <option value="jobCategory">Job Category</option>
-                        {/* <option value="basicSalary">Basic Salary</option> */}
-                        {/* <option value="otRate">OT Rate</option> */}
                     </select>
-                    <h2 style={{ textAlign: 'center', fontSize: '16px', fontWeight: 'bold' }}>Sort By:</h2>
                     <div style={styles.radioContainer}>
                         <label style={styles.radioButton}>
                             <input

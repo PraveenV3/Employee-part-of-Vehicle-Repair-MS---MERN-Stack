@@ -1,49 +1,42 @@
 import React, { Component } from 'react';
-import Sidebar from '../components/sidebar';
-import Header from '../components/header';
-import Employee from './EmployeeLists';
-
-import '../styles/style.css';
-import '@fortawesome/fontawesome-free/css/all.css';
+import Header from './../components/Header';
+import Sidebar from './../components/Sidebar';
+import EmployeeLists from './EmployeeLists';
 
 class Home extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            isDarkMode: false,
-            isSidebarOpen: false,
-        };
-    }
-
-    toggleDarkMode = () => {
-        const { isDarkMode } = this.state;
-        this.setState(prevState => ({
-            isDarkMode: !prevState.isDarkMode,
-        }));
-        document.body.classList.toggle("dark", !isDarkMode);
-    }
-
-    toggleSidebar = () => {
-        this.setState(prevState => ({
-            isSidebarOpen: !prevState.isSidebarOpen,
-        }));
-    }
-
     render() {
-        const { isDarkMode, isSidebarOpen } = this.state;
+        const containerStyle = {
+            position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          overflow: 'hidden', // Prevent scrolling
+        };
+
+        const contentStyle = {
+            display: 'flex',
+            flexGrow: 1, // Content area fills the remaining space
+        };
+
+        const globalStyles = `
+            html, body {
+                overflow: hidden;
+                margin: 0;
+                padding: 0;
+            }
+
+            .homepage-container {
+                overflow: hidden;
+            }
+        `;
+
         return (
-            <div className={`container ${isDarkMode ? "dark" : ""}`}>
-                
-                <Sidebar
-                    isSidebarOpen={isSidebarOpen}
-                    toggleSidebar={this.toggleSidebar}
-                    isDarkMode={isDarkMode}
-                    toggleDarkMode={this.toggleDarkMode}
-                    
-                />
-                <Header isDarkMode={isDarkMode} />
-                <div className="home" style={{ marginTop: '3%' }}>
-                     <Employee isDarkMode={isDarkMode} /> 
+            <div className="homepage-container" style={containerStyle}>
+                <style>{globalStyles}</style>
+                <Header />
+                <div className="content" style={contentStyle}>
+                    <Sidebar />
+                    <EmployeeLists />
                 </div>
             </div>
         );

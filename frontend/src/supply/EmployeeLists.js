@@ -2,8 +2,6 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import swal from 'sweetalert';
-import Header from '../components/header';
-import Sidebar from '../components/sidebar';
 import jsPDF from 'jspdf';
 import { Link } from 'react-router-dom';
 import 'jspdf-autotable'; 
@@ -12,12 +10,7 @@ class EmployeeLists extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            isDarkMode: false,
-            isSidebarOpen: false,
             employees: [],
-            isAddModalOpen: false,
-            isEditModalOpen: false,
-            currentEmployeeId: '',
             newEmployee: {
                 employeeName:'',
                 contactNumber:'',
@@ -55,20 +48,6 @@ class EmployeeLists extends Component {
             console.error("Couldn't fetch employees", error);
         }
     };
-
-    toggleDarkMode = () => {
-        const { isDarkMode } = this.state;
-        this.setState(prevState => ({
-            isDarkMode: !prevState.isDarkMode,
-        }));
-        document.body.classList.toggle("dark", !isDarkMode);
-    }
-
-    toggleSidebar = () => {
-        this.setState(prevState => ({
-            isSidebarOpen: !prevState.isSidebarOpen,
-        }));
-    }
 
     handlePDFGeneration = async () => {
         try {
@@ -165,153 +144,139 @@ class EmployeeLists extends Component {
         }));
     }
 
+    handleSearch = (event) => {
+        const searchQuery = event.target.value;
+        const { employees } = this.state;
+        const filteredEmployees = employees.filter(employee =>
+            employee.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            employee.jobCategory.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        this.setState({ searchQuery, filteredEmployees });
+    }
+
     render() {
-        const { isDarkMode, isSidebarOpen } = this.state;
-        const cardStyleAdjustment = {
-            transition: 'all 0.3s',
-            marginLeft: isSidebarOpen ? '90px' : '80px',
-            width: isSidebarOpen ? 'calc(100% - 150px)' : '85%' 
-        };
-const commonStyles = {
+        const { filteredEmployees, searchQuery } = this.state;
+        const tableContainerStyle = {};
+        const commonStyles = {
             cardStyle: {
-                display: 'absolute',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 margin: '20px',
                 marginTop: '1%',
-                backgroundColor: isDarkMode ? '#333' : '#fff',
+                backgroundColor: '#fff',
                 boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
                 borderRadius: '10px',
                 padding: '20px',
                 fontFamily: 'sans-serif',
-                position: 'relative',
-                ...cardStyleAdjustment,
-                transition: 'all 0.3s',
-                marginLeft: 'var(--sidebar-width, 80px)',
-                width: 'calc(100% - var(--sidebar-width, 80px) - 20px)', 
+                position: 'relative', 
             },
-
             tableStyle: {
-                width: '97%', borderCollapse: 'collapse', marginTop: '2px',
-                
-
+                width: '97%',
+                borderCollapse: 'collapse',
+                marginTop: '2px',
             },
             thStyle: {
-                backgroundColor: isDarkMode ? '#555' : '#ddd', color: isDarkMode ? '#ddd' : '#333', padding: '12px 15px', textAlign: 'left', borderBottom: '1px solid #ddd', whiteSpace: 'nowrap',
+                backgroundColor: '#ddd',
+                color: '#333',
+                padding: '12px 15px',
+                textAlign: 'left',
+                borderBottom: '1px solid #ddd',
+                whiteSpace: 'nowrap',
             },
             tdStyle: {
-                padding: '12px 15px', borderBottom: '1px solid #ddd', color: isDarkMode ? '#ddd' : '#333', textAlign: 'left',
-            },
-            actionStyle: {
-                display: 'flex', justifyContent: 'space-around',
-            },
-            buttonContainerStyle: {
-                position: 'absolute', top: '8%', right: '20px', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
-            },
-            inputStyle: {
-                width: '100%', padding: '10px', marginTop: '10px', borderRadius: '5px', border: '1px solid #ccc', fontSize: '16px', backgroundColor: isDarkMode ? '#444' : '#fff', color: isDarkMode ? '#ddd' : '#333',
+                padding: '15px',
+                borderBottom: '1px solid #ddd',
+                color: '#333',
+                textAlign: 'left',
             },
             buttonStyle: {
-                width: '80%',
-                 padding: '2%',
-                  marginRight: '10px',
-                   marginTop: '10px',
-                    borderRadius: '5px',
-                     border: 'none',
-                      backgroundColor: '#009688',
-                       color: '#fff', cursor: 'pointer', fontSize: '16px', textDecoration: 'none'
+                width: '15%',
+                height: '50px', // Adjusted height
+                borderRadius: '20px',
+                border: 'none',
+                backgroundColor: '#009688',
+                color: '#fff',
+                cursor: 'pointer',
+                fontSize: '16px',
+                textDecoration: 'none',
+                marginBottom: '10px', // Add margin bottom
             },
-            buttonStyle4: {
-                width: '80%',
-                 padding: '2%',
-                  marginRight: '10px',
-                   marginTop: '10px',
-                    borderRadius: '5px',
-                     border: 'none',
-                      backgroundColor: '#285955',
-                       color: '#fff', cursor: 'pointer', fontSize: '16px', textDecoration: 'none'
-            },
+
+            
             validationMessageStyle: {
-                color: '#ff3860', fontSize: '0.8rem', marginTop: '0.25rem',
+                color: '#ff3860',
+                fontSize: '0.8rem',
+                marginTop: '0.25rem',
             },
-            buttonStyle2: {
-                padding: '8px 10px',
-                borderRadius: '5px',
-                fontSize: '14px',
-                border: 'none',
-                color: '#fff',
-                cursor: 'pointer',
-                marginTop: '20px',
-                width: '10%',
-                marginLeft: '85%'
+            buttonContainer: {
+                display: 'flex',
+                flexDirection: 'column', // Display buttons vertically
+                alignItems: 'flex-end', // Align buttons to the right
+                marginBottom: '20px', // Add margin bottom
             },
-            buttonStyle3: {
-                padding: '8px 10px',
+            searchInput: {
+                padding: '10px',
                 borderRadius: '5px',
-                fontSize: '14px',
-                border: 'none',
-                color: '#fff',
-                cursor: 'pointer',
-                marginTop: '10px',
-                marginBottom: '1%',
-                width: '10%',
-                marginLeft: '85%'
-            }
+                border: '1px solid #ccc',
+                width: '100%',
+                marginBottom: '10px',
+                boxSizing: 'border-box',
+                fontSize: '16px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                outline: 'none',
+            },
         };
 
-    return (
-        <div className={`container ${isDarkMode ? "dark" : ""}`}  style={{ marginTop: '4%' }}>
-            <Header isDarkMode={isDarkMode} />
-            <Sidebar
-                isSidebarOpen={isSidebarOpen}
-                toggleSidebar={this.toggleSidebar}
-                isDarkMode={isDarkMode}
-                toggleDarkMode={this.toggleDarkMode}
-            />
-            <button onClick={this.handlePDFGeneration} style={{ ...commonStyles.buttonStyle2, background: '#009688' }}>
-                Generate PDF
-            </button>
-            <Link to="/manage-employees">
-                <button style={{ ...commonStyles.buttonStyle2, background: '#009688', marginRight: '10% '}}>Employee manage</button>
-            </Link>
-            <div className="home">
-                <div style={commonStyles.cardStyle}>
-                    <input
-                        type="text"
-                        placeholder="Search by Company Name or Product Type"
-                        style={{ ...commonStyles.inputStyle, marginBottom: '10px' }}
-                        value={this.state.searchQuery}
-                        onChange={this.handleSearch}
-                    />
-                    <table id="employees-table" style={commonStyles.tableStyle}>
-                        <thead>
-                            <tr>
-                                <th style={commonStyles.thStyle}>Employee Name</th>
-                                <th style={commonStyles.thStyle}>Contact Number</th>
-                                <th style={commonStyles.thStyle}>NIC</th>
-                                <th style={commonStyles.thStyle}>Address</th>
-                                <th style={commonStyles.thStyle}>Email</th>
-                                <th style={commonStyles.thStyle}>Job Category</th>
-                                <th style={commonStyles.thStyle}>Basic Salary</th>
-                                <th style={commonStyles.thStyle}>OT Rate</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {this.state.filteredEmployees.map(employee => (
-                                <tr key={employee._id}>
-                                    <td style={commonStyles.tdStyle}>{employee.employeeName}</td>
-                                    <td style={commonStyles.tdStyle}>{employee.contactNumber}</td>
-                                    <td style={commonStyles.tdStyle}>{employee.NIC}</td>
-                                    <td style={commonStyles.tdStyle}>{employee.address}</td>
-                                    <td style={commonStyles.tdStyle}>{employee.email}</td>
-                                    <td style={commonStyles.tdStyle}>{employee.jobCategory}</td>
-                                    <td style={commonStyles.tdStyle}>{employee.basicSalary}</td>
-                                    <td style={commonStyles.tdStyle}>{employee.otRate}</td>
-                               
+        return (
+            <div className="container" style={{ marginTop: '4%' }}>
+                <div style={commonStyles.buttonContainer}>
+                    <button onClick={this.handlePDFGeneration} style={{ ...commonStyles.buttonStyle, }}>
+                        Generate PDF
+                    </button>
+                    <Link to="/manage-employees">
+                        <button style={{ width: '125%',height: '50px',borderRadius: '20px',border: 'none',backgroundColor: '#009688',color: '#fff',cursor: 'pointer',fontSize: '16px',textDecoration: 'none',marginBottom: '10px', marginLeft: '-25%',
+                }}>Employee manage</button>
+                    </Link>
+                </div>
+                <div className="home">
+                    <div style={commonStyles.cardStyle}>
+                        <input
+                            type="text"
+                            placeholder="Search by Employee Name or Address"
+                            style={commonStyles.searchInput}
+                            value={searchQuery}
+                            onChange={this.handleSearch}
+                        />
+                        <div style={tableContainerStyle}>
+                            <table id="employees-table" style={commonStyles.tableStyle}>
+                                <thead>
+                                    <tr>
+                                        <th style={commonStyles.thStyle}>Employee Name</th>
+                                        <th style={commonStyles.thStyle}>Contact Number</th>
+                                        <th style={commonStyles.thStyle}>NIC</th>
+                                        <th style={commonStyles.thStyle}>Address</th>
+                                        <th style={commonStyles.thStyle}>Email</th>
+                                        <th style={commonStyles.thStyle}>Job Category</th>
+                                        <th style={commonStyles.thStyle}>Basic Salary</th>
+                                        <th style={commonStyles.thStyle}>OT Rate</th>
                                     </tr>
-                                ))}
-                            </tbody>    
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {filteredEmployees.map(employee => (
+                                        <tr key={employee._id}>
+                                            <td style={commonStyles.tdStyle}>{employee.employeeName}</td>
+                                            <td style={commonStyles.tdStyle}>{employee.contactNumber}</td>
+                                            <td style={commonStyles.tdStyle}>{employee.NIC}</td>
+                                            <td style={commonStyles.tdStyle}>{employee.address}</td>
+                                            <td style={commonStyles.tdStyle}>{employee.email}</td>
+                                            <td style={commonStyles.tdStyle}>{employee.jobCategory}</td>
+                                            <td style={commonStyles.tdStyle}>{employee.basicSalary}</td>
+                                            <td style={commonStyles.tdStyle}>{employee.otRate}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>    
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

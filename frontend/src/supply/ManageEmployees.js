@@ -2,19 +2,20 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import { FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
 import swal from 'sweetalert';
-import Header from '../components/header';
-import Sidebar from '../components/sidebar';
-// import '../styles/style.css';
+import Header from '../components/Header';
+import Sidebar from '../components/Sidebar';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import FilterBox from '../components/FilterBox';
+import { Link } from 'react-router-dom';
 
-class ManageEmployees extends Component {
+
+
+  class ManageEmployees extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            isDarkMode: false,
-            isSidebarOpen: false,
+            
             employees: [],
             isAddModalOpen: false,
             isEditModalOpen: false,
@@ -42,36 +43,22 @@ class ManageEmployees extends Component {
             searchQuery: '', 
             filteredEmployees: [],
         };
-    }
+      }
 
-    componentDidMount() {
+      componentDidMount() {
         this.fetchEmployees();
-    }
+      }
+  
+      fetchEmployees = async () => {
+          try {
+              const response = await axios.get('http://localhost:5555/employees');
+              this.setState({ employees: response.data.data, filteredEmployees: response.data.data });
+          } catch (error) {
+              console.error("Couldn't fetch employees", error);
+          }
+      };
 
-    fetchEmployees = async () => {
-        try {
-            const response = await axios.get('http://localhost:5555/employees');
-            this.setState({ employees: response.data.data, filteredEmployees: response.data.data });
-        } catch (error) {
-            console.error("Couldn't fetch employees", error);
-        }
-    };
-
-    toggleDarkMode = () => {
-        const { isDarkMode } = this.state;
-        this.setState(prevState => ({
-            isDarkMode: !prevState.isDarkMode,
-        }));
-        document.body.classList.toggle("dark", !isDarkMode);
-    }
-
-    toggleSidebar = () => {
-        this.setState(prevState => ({
-            isSidebarOpen: !prevState.isSidebarOpen,
-        }));
-    }
-
-    toggleAddModal = () => {
+      toggleAddModal = () => {
         this.setState(prevState => ({
             isAddModalOpen: !prevState.isAddModalOpen,
             newEmployee: {
@@ -292,130 +279,160 @@ class ManageEmployees extends Component {
     
         // Update filteredEmployees state accordingly
         this.setState({ filteredEmployees });
-    };    
+    };
 
     render() {
-        const { isDarkMode, isSidebarOpen, employees, newEmployee, isAddModalOpen, isEditModalOpen, validationMessages } = this.state;
+      const {newEmployee, isAddModalOpen, isEditModalOpen, validationMessages } = this.state;
+      
+      const modalStyle = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' };
+      const modalContentStyle = { backgroundColor: 'white', color:  'black', padding: '20px', borderRadius: '8px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)', width: '400px' };
+      const cardStyleAdjustment = {
+          transition: 'all 0.3s',
+      };
+        const containerStyle = {
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          overflow: 'hidden', // Prevent scrolling
+        };
+      
+        const contentWrapperStyle = {
+          display: 'flex',
+          justifyContent: 'space-between',
+          marginTop: '30px', // Adjust according to your header height
+          padding: '20px',
+          overflow: 'hidden', // Prevent scrolling
+        };
+      
+        const contentStyle = {
+          flexGrow: 1,
+          backgroundColor: '#f2f2f2',
+          borderRadius: '8px',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+          padding: '20px',
+          position: 'relative',
+          overflow: 'hidden', // Prevent scrolling
+          maxWidth: 'calc(100% - 250px)', // Adjust according to your sidebar width
+      };
+
+      const commonStyles = {
+          cardStyle: {
+              display: 'absolute',
+              justifyContent: 'space-between',
+              // alignItems: 'center',
+              margin: '20px',
+              marginTop: '1%',
+              backgroundColor : '#fff',
+              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+              borderRadius: '10px',
+              padding: '20px',
+              fontFamily: 'sans-serif',
+              position: 'relative',
+              ...cardStyleAdjustment,
+              transition: 'all 0.3s' 
+          },
+
+          tableContainer: {
+            overflowX: 'auto', // Add horizontal scrolling if table overflows
+            maxWidth: '100%', // Ensure the table does not exceed the container's width
+        },
         
-        const modalStyle = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center' };
-        const modalContentStyle = { backgroundColor: isDarkMode ? '#333' : 'white', color: isDarkMode ? 'white' : 'black', padding: '20px', borderRadius: '8px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)', width: '400px' };
-        const cardStyleAdjustment = {
-            transition: 'all 0.3s',
-            marginLeft: isSidebarOpen ? '90px' : '80px',
-            width: isSidebarOpen ? 'calc(100% - 150px)' : '85%' 
-        };
 
-        const commonStyles = {
-            cardStyle: {
-                display: 'absolute',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                margin: '20px',
-                marginTop: '1%',
-                backgroundColor: isDarkMode ? '#333' : '#fff',
-                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-                borderRadius: '10px',
-                padding: '20px',
-                fontFamily: 'sans-serif',
-                position: 'relative',
-                ...cardStyleAdjustment,
-                transition: 'all 0.3s',
-                marginLeft: 'var(--sidebar-width, 80px)',
-                width: 'calc(100% - var(--sidebar-width, 80px) - 20px)', 
-            },
+        tableStyle: {
+          width: '100%', // Occupy full width of the container
+          borderCollapse: 'collapse',
+          marginTop: '2px',
+      },
+          thStyle: {
+              backgroundColor: '#ddd', color : '#333', padding: '12px 15px', textAlign: 'left', borderBottom: '1px solid #ddd', whiteSpace: 'nowrap',
+          },
+          tdStyle: {
+              padding: ' 15px', borderBottom: '1px solid #ddd', color: '#333', textAlign: 'left',
+          },
+          actionStyle: {
+              display: 'flex', justifyContent: 'space-around',
+          },
+          buttonContainerStyle: {
+              position: 'absolute', top: '8%', right: '20px', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
+          },
+          inputStyle: {
+              width: '100%', padding: '10px', marginTop: '10px', borderRadius: '5px', border: '1px solid #ccc', fontSize: '16px', backgroundColor: '#fff', color: '#333',
+          },
+          buttonStyle: {
+              width: '80%',
+               padding: '2%',
+                marginRight: '10px',
+                 marginTop: '10px',
+                  borderRadius: '5px',
+                   border: 'none',
+                    backgroundColor: '#009688',
+                     color: '#fff', cursor: 'pointer', fontSize: '16px', textDecoration: 'none'
+          },
+          buttonStyle4: {
+              width: '80%',
+               padding: '2%',
+                marginRight: '10px',
+                 marginTop: '10px',
+                  borderRadius: '5px',
+                   border: 'none',
+                    backgroundColor: '#285955',
+                     color: '#fff', cursor: 'pointer', fontSize: '16px', textDecoration: 'none'
+          },
+          validationMessageStyle: {
+              color: '#ff3860', fontSize: '0.8rem', marginTop: '0.25rem',
+          },
+          buttonStyle2: {
+              padding: ' 10px',
+              borderRadius: '5px',
+              fontSize: '14px',
+              border: 'none',
+              color: '#fff',
+              cursor: 'pointer',
+              marginTop: '20px',
+              width: '10%',
+              marginLeft: '85%'
+          },
+          buttonStyle3: {
+              padding: ' 10px',
+              borderRadius: '5px',
+              fontSize: '14px',
+              border: 'none',
+              color: '#fff',
+              cursor: 'pointer',
+              marginTop: '20px',
+              marginBottom: '1%',
+              width: '10%',
+              height: '100%',
+              Left: '85%'
+          }
+      };
 
-            tableStyle: {
-                width: '97%', borderCollapse: 'collapse', marginTop: '2px',
-                
-
-            },
-            thStyle: {
-                backgroundColor: isDarkMode ? '#555' : '#ddd', color: isDarkMode ? '#ddd' : '#333', padding: '12px 15px', textAlign: 'left', borderBottom: '1px solid #ddd', whiteSpace: 'nowrap',
-            },
-            tdStyle: {
-                padding: '12px 15px', borderBottom: '1px solid #ddd', color: isDarkMode ? '#ddd' : '#333', textAlign: 'left',
-            },
-            actionStyle: {
-                display: 'flex', justifyContent: 'space-around',
-            },
-            buttonContainerStyle: {
-                position: 'absolute', top: '8%', right: '20px', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
-            },
-            inputStyle: {
-                width: '100%', padding: '10px', marginTop: '10px', borderRadius: '5px', border: '1px solid #ccc', fontSize: '16px', backgroundColor: isDarkMode ? '#444' : '#fff', color: isDarkMode ? '#ddd' : '#333',
-            },
-            buttonStyle: {
-                width: '80%',
-                 padding: '2%',
-                  marginRight: '10px',
-                   marginTop: '10px',
-                    borderRadius: '5px',
-                     border: 'none',
-                      backgroundColor: '#009688',
-                       color: '#fff', cursor: 'pointer', fontSize: '16px', textDecoration: 'none'
-            },
-            buttonStyle4: {
-                width: '80%',
-                 padding: '2%',
-                  marginRight: '10px',
-                   marginTop: '10px',
-                    borderRadius: '5px',
-                     border: 'none',
-                      backgroundColor: '#285955',
-                       color: '#fff', cursor: 'pointer', fontSize: '16px', textDecoration: 'none'
-            },
-            validationMessageStyle: {
-                color: '#ff3860', fontSize: '0.8rem', marginTop: '0.25rem',
-            },
-            buttonStyle2: {
-                padding: '8px 10px',
-                borderRadius: '5px',
-                fontSize: '14px',
-                border: 'none',
-                color: '#fff',
-                cursor: 'pointer',
-                marginTop: '20px',
-                width: '10%',
-                marginLeft: '85%'
-            },
-            buttonStyle3: {
-                padding: '8px 10px',
-                borderRadius: '5px',
-                fontSize: '14px',
-                border: 'none',
-                color: '#fff',
-                cursor: 'pointer',
-                marginTop: '10px',
-                marginBottom: '1%',
-                width: '10%',
-                height: '100%',
-                marginLeft: '85%'
-            }
-        };
-    
-        return (
-            
-            <div className={`container ${isDarkMode ? "dark" : ""}`}  style={{ marginTop: '4%' }}>
-                <Header isDarkMode={isDarkMode} />
-                <Sidebar
-                    isSidebarOpen={isSidebarOpen}
-                    toggleSidebar={this.toggleSidebar}
-                    isDarkMode={isDarkMode}
-                    toggleDarkMode={this.toggleDarkMode}
-                />
-
-                        <button onClick={this.handlePDFGeneration} style={{ ...commonStyles.buttonStyle2, background: '#009688' }}>
+  return (
+    <div style={containerStyle}> {/* Apply inline styles */}
+      <Header />
+      <div style={contentWrapperStyle}> {/* Styled box for free space */}
+        <Sidebar />
+        <div style={contentStyle}>
+            <button onClick={this.handlePDFGeneration} style={{ ...commonStyles.buttonStyle2, background: '#009688' }}>
                             Generate PDF
-                        </button>
+            </button>
                          
-                        <button onClick={this.toggleAddModal}  style={{ ...commonStyles.buttonStyle3, background: '#009688'}}>
-                            <FaPlus style={{ marginRight: '8px' }} />
+            <button onClick={this.toggleAddModal}  style={{ ...commonStyles.buttonStyle2, background: '#009688'}}>
+               <FaPlus style={{ marginRight: '8px' }} />
                             Add Employees
-                        </button>     
+            </button>
+            <Link to="/emp-salary">
+                <button  style={{ ...commonStyles.buttonStyle2, background: '#009688'}}>
+                    Salary Details
+                </button>
+            </Link>
 
-                        <FilterBox onSubmit={this.handleFilterSubmit} /> {/* Integrate FilterBox component here */}
-                
-                <div className="home">
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <FilterBox onSubmit={this.handleFilterSubmit} />
+            </div>
+
+            
                     <div style={commonStyles.cardStyle}>
                     <input
                             type="text"
@@ -425,7 +442,8 @@ class ManageEmployees extends Component {
                             onChange={this.handleSearch}
                         />
                         
-                        <table id="employees-table" style={commonStyles.tableStyle}>
+                        <div style={commonStyles.tableContainer}>
+                          <table id="employees-table" style={commonStyles.tableStyle}>
                             <thead>
                                 <tr>
                                     <th style={commonStyles.thStyle}>NIC</th>
@@ -449,7 +467,9 @@ class ManageEmployees extends Component {
                                         <td style={commonStyles.tdStyle}>{employee.address}</td>
                                         <td style={commonStyles.tdStyle}>{employee.email}</td>
                                         <td style={commonStyles.tdStyle}>{employee.jobCategory}</td>
-                                        <td style={commonStyles.tdStyle}>{employee.basicSalary} + { parseFloat(employee.otRate)}* W</td>
+                                        <td style={commonStyles.tdStyle}>{parseFloat(employee.basicSalary) + (parseFloat(employee.basicSalary) *( parseFloat(employee.otRate)/100))}
+</td>
+
 
 
                                         <td style={commonStyles.tdStyle}>
@@ -465,6 +485,7 @@ class ManageEmployees extends Component {
                                 ))}
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
 
@@ -630,9 +651,10 @@ class ManageEmployees extends Component {
                     </div>
                 )}
             </div>
-        );
-    }
+        </div>
+      
+  );
+};
 }
 
 export default ManageEmployees;
-
